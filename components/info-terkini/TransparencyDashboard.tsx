@@ -36,7 +36,7 @@ export default function TransparencyDashboard() {
             Dashboard Transparansi Pasokan Pertanian
           </h1>
           <p className="text-gray-500 leading-relaxed max-w-xl">
-            Pantau pasokan sayuran, bahan baku makanan, dan buah-buahan secara real-time dengan tampilan resmi bergaya pemerintah untuk membantu pengambilan keputusan yang cepat dan akurat.
+            Pantau pasokan sayuran, bahan baku makanan, serta buah-buahan secara real-time dengan tampilan resmi bergaya pemerintah untuk membantu pengambilan keputusan yang cepat dan akurat.
           </p>
         </div>
         <div className="flex-1 bg-gray-50 rounded-2xl border border-dashed border-gray-200 aspect-video overflow-hidden">
