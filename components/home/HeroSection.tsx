@@ -36,7 +36,7 @@ export default function HeroSection() {
             transition={{ duration: 0.5 }}
             className="mb-6 inline-flex rounded-full bg-white px-4 py-1.5 text-xs font-bold tracking-[0.15em] text-cyan-700 uppercase shadow-sm"
           >
-            PLATFORM SMART FARMING - JAKARTA PUSAT
+            PLATFORM SMART FARMING - SELURUH INDONESIA
           </motion.div>
 
           <motion.h1
@@ -54,9 +54,9 @@ export default function HeroSection() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="mt-6 max-w-3xl text-lg text-slate-700 leading-relaxed font-medium"
           >
-            Platform Smart Farming untuk menghubungkan petani Jakarta Pusat dan
+            Platform Smart Farming untuk menghubungkan petani di seluruh Indonesia dan
             distributor di seluruh Indonesia. Pantau stok, validasi kualitas,
-            dan percepat transaksi dalam satu dashboard yang ringkas.[cite: 5]
+            dan percepat transaksi dalam satu dashboard yang ringkas.
           </motion.p>
 
           <motion.div
