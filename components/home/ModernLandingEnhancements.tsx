@@ -17,19 +17,19 @@ const pillars = [
   {
     title: "Katalog Digital",
     description:
-      "",
+      "Akses informasi komoditas, mutu, dan ketersediaan hasil tani dalam satu tampilan yang rapi",
     icon: BookOpenText,
   },
   {
     title: "Pantauan Real-time",
     description:
-      "",
+      "Pantau stok, harga, dan status distribusi dengan update cepat untuk keputusan yang tepat.",
     icon: Radar,
   },
   {
     title: "Forum Chat",
     description:
-      "D",
+      "Diskusi langsung antara petani, mitra, dan distributor untuk koordinasi yang efisien.",
     icon: MessageCircle,
   },
 ];
