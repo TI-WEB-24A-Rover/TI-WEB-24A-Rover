@@ -2,14 +2,15 @@
 import { useState } from 'react';
 import Modal from '@/components/ui/Modal';
 import FarmerCard from '@/components/info-tani/FarmerCard';
+import type { Farmer } from '@/lib/definitions';
 import { farmers } from '@/lib/data-dummy';
 
 export default function InfoTaniPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedFarmer, setSelectedFarmer] = useState<any>(null);
+  const [selectedFarmer, setSelectedFarmer] = useState<Farmer | null>(null);
 
   const handleOpenModal = (id: string) => {
-    const data = farmers.find(f => f.id === id);
+    const data = farmers.find((f) => f.id === id) ?? null;
     setSelectedFarmer(data);
     setIsModalOpen(true);
   };
