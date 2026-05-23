@@ -1,8 +1,8 @@
 import "./globals.css";
 import Link from "next/link";
 import { Plus_Jakarta_Sans } from "next/font/google";
-import { Send, Phone, MessageCircle } from "lucide-react";
-import { FaYoutube } from "react-icons/fa";
+import { Send, Mail, Phone, MapPin, MessageCircle } from "lucide-react";
+import { FaInstagram, FaYoutube } from "react-icons/fa";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
