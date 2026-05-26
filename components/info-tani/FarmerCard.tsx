@@ -1,7 +1,7 @@
 'use client';
 import Image from 'next/image';
 import React from 'react';
-import { Farmer } from '@/lib/data-dummy';
+import type { Farmer } from '@/lib/definitions';
 
 type FarmerCardProps = {
   farmer: Farmer;

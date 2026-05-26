@@ -1,4 +1,6 @@
-export const farmers = [
+import type { Farmer } from "./definitions";
+
+export const farmers: Farmer[] = [
   {
     id: '1',
     product: 'Padi Ciherang',
@@ -30,13 +32,3 @@ export const farmers = [
     image: '/gamba6.jpg',
   },
 ];
-export interface Farmer {
-  id: string;
-  product: string;
-  name: string;
-  location: string;
-  status: string;
-  statusType: 'success' | 'warning'; // Hanya boleh dua nilai ini
-  desc: string;
-  image: string;
-}
