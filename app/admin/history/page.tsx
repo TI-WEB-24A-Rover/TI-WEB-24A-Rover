@@ -30,9 +30,8 @@ type Order = {
 export default function AdminHistoryPage() {
   const router = useRouter();
   const { ready, session } = useAdminTenant();
-  const [isMounted, setIsMounted] = useState(false);
   const [history, setHistory] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   async function readResponseError(response: Response) {
     const contentType = response.headers.get("content-type") || "";
@@ -45,10 +44,6 @@ export default function AdminHistoryPage() {
   }
 
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
     if (!ready) {
       return;
     }
@@ -58,12 +53,14 @@ export default function AdminHistoryPage() {
       return;
     }
 
+    const tenantSession = session;
+
     async function fetchHistory() {
       try {
         setIsLoading(true);
         const response = await fetch(`/api/admin/orders?scope=history&limit=100`, {
           headers: {
-            "x-farmer-id": session.tenantId,
+            "x-farmer-id": tenantSession.tenantId,
           },
         });
 
@@ -91,7 +88,7 @@ export default function AdminHistoryPage() {
     fetchHistory();
   }, [ready, router, session]);
 
-  if (!isMounted) {
+  if (isLoading && history.length === 0) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center rounded-3xl border border-white/60 bg-white/35 px-6 py-10 shadow-[0_24px_60px_rgba(14,116,144,0.12)] backdrop-blur-xl">
         <div className="relative flex flex-col items-center gap-4 rounded-4xl border border-cyan-200/70 bg-white/55 px-8 py-10 text-center shadow-[0_18px_40px_rgba(2,132,199,0.12)] backdrop-blur-lg">
