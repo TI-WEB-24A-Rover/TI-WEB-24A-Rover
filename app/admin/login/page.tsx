@@ -1,203 +1,135 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAdminTenant } from "@/components/admin/useAdminTenant";
+import {
+  assignCatalogForEmail,
+  getTenantCatalog,
+  saveAdminSession,
+  saveAdminAccount,
+  validateAdminLogin,
+} from "@/lib/admin-store";
 
-type Order = {
-  id: string;
-  trackingId: string;
-  billCode: string;
-  createdAt: string;
-  status: string;
-  statusLabel: string;
-  buyer: { id: string; name: string; email: string };
-  paymentMethod: string;
-  paymentStatus: string;
-  subtotal: number;
-  logisticsCost: number;
-  total: number;
-  items: Array<{
-    id: string;
-    productId: string;
-    productName: string;
-    quantityKg: number;
-    unitPrice: number;
-    subtotal: number;
-  }>;
-};
-
-export default function AdminHistoryPage() {
+export default function AdminLoginPage() {
   const router = useRouter();
-  const { ready, session } = useAdminTenant();
-  const [isMounted, setIsMounted] = useState(false);
-  const [history, setHistory] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
-  async function readResponseError(response: Response) {
-    const contentType = response.headers.get("content-type") || "";
-    if (contentType.includes("application/json")) {
-      const payload = await response.json();
-      return typeof payload?.error === "string" ? payload.error : JSON.stringify(payload);
-    }
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
 
-    return await response.text();
-  }
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!ready) {
+    if (!email.includes("@") || password.length < 6) {
+      setError("Masukkan kredensial admin yang valid.");
       return;
     }
 
-    if (!session) {
-      router.push("/admin/login");
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (isRegisterMode && name.trim().length < 2) {
+      setError("Nama admin minimal 2 karakter.");
       return;
     }
 
-    const tenantId = session.tenantId;
-
-    async function fetchHistory() {
-      try {
-        setIsLoading(true);
-        const response = await fetch(`/api/admin/orders?scope=history&limit=100`, {
-          headers: {
-            "x-farmer-id": tenantId,
-          },
-        });
-
-        if (!response.ok) {
-          const errorMessage = await readResponseError(response);
-          console.error("Fetch history error:", {
-            status: response.status,
-            statusText: response.statusText,
-            body: errorMessage,
-          });
-          setHistory([]);
-          return;
-        }
-
-        const data = await response.json();
-        setHistory(data.data || []);
-      } catch (error) {
-        console.error("Fetch error:", error);
-        setHistory([]);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchHistory();
-  }, [ready, router, session]);
-
-  async function handleDelete(orderId: string) {
-    if (!session) return;
-    if (!confirm("Apakah Anda yakin ingin menghapus riwayat transaksi ini dari database?")) {
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      const response = await fetch(`/api/admin/orders/${orderId}`, {
-        method: "DELETE",
-        headers: {
-          "x-farmer-id": session.tenantId,
-        },
-      });
-
-      if (!response.ok) {
-        const errorMsg = await readResponseError(response);
-        throw new Error(errorMsg || "Gagal menghapus transaksi.");
+    if (!isRegisterMode) {
+      const found = validateAdminLogin(normalizedEmail, password);
+      if (!found) {
+        setError("Akun tidak ditemukan atau password salah.");
+        return;
       }
 
-      alert("Transaksi berhasil dihapus.");
-      setHistory((prev) => prev.filter((item) => item.id !== orderId));
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : "Terjadi kesalahan";
-      alert(msg);
-    } finally {
-      setIsLoading(false);
+      saveAdminSession(found);
+      router.push("/admin");
+      return;
     }
-  }
 
-  if (!isMounted) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center rounded-3xl border border-white/60 bg-white/35 px-6 py-10 shadow-[0_24px_60px_rgba(14,116,144,0.12)] backdrop-blur-xl">
-        <div className="relative flex flex-col items-center gap-4 rounded-4xl border border-cyan-200/70 bg-white/55 px-8 py-10 text-center shadow-[0_18px_40px_rgba(2,132,199,0.12)] backdrop-blur-lg">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-cyan-200 border-t-cyan-600" />
-          <div className="space-y-2">
-            <div className="mx-auto h-4 w-52 animate-pulse rounded-full bg-cyan-100/80" />
-            <div className="mx-auto h-3 w-32 animate-pulse rounded-full bg-sky-100/80" />
-          </div>
-          <p className="text-sm font-medium text-slate-600">Menyiapkan riwayat Aqua Sky...</p>
-        </div>
-      </div>
+    const assigned = assignCatalogForEmail(normalizedEmail);
+    const account = saveAdminAccount({
+      name: name.trim(),
+      email: normalizedEmail,
+      password,
+      assignedCatalogId: assigned.id,
+    });
+    saveAdminSession(account);
+    setSuccess(
+      `Akun berhasil dibuat dan terhubung ke ${getTenantCatalog(account.assignedCatalogId).name}.`,
     );
-  }
-
-  if (!ready || !session) {
-    return null;
+    router.push("/admin");
   }
 
   return (
-    <section className="space-y-5">
-      <header className="rounded-3xl border border-white/80 bg-white/70 p-6">
-        <p className="text-xs uppercase tracking-[0.2em] text-cyan-700">History</p>
-        <h1 className="mt-2 text-2xl font-semibold text-slate-900">Riwayat Transaksi Sukses</h1>
-        <p className="mt-2 text-sm text-slate-600">
-          {history.length} transaksi selesai {isLoading ? "• Memuat..." : ""}
-        </p>
-      </header>
+    <main className="min-h-screen flex items-center justify-center px-4 py-8">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-lg space-y-4 rounded-3xl border border-white/80 bg-white/60 p-6 shadow-[0_24px_56px_rgba(8,145,178,0.2)] backdrop-blur-xl"
+      >
+        <div>
+          <p className="text-xs uppercase tracking-[0.2em] text-cyan-700">Admin Area</p>
+          <h1 className="mt-1 text-2xl font-semibold text-slate-800">
+            {isRegisterMode ? "Daftar Admin Petani" : "Login Admin"}
+          </h1>
+          <p className="text-sm text-slate-600">
+            Masuk untuk mengelola katalog, pesanan, history, monitoring, dan profil petani.
+          </p>
+        </div>
 
-      <div className="space-y-3">
-        {history.length === 0 && !isLoading ? (
-          <div className="rounded-2xl border border-dashed border-cyan-200 bg-white/60 p-6 text-sm text-slate-600">
-            Belum ada transaksi selesai.
+        {isRegisterMode && (
+          <div>
+            <label className="block text-sm text-slate-700">Nama Petani</label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-cyan-100 bg-white/90 px-3 py-2.5 outline-none focus:border-cyan-400"
+              placeholder="Nama akun admin"
+            />
           </div>
-        ) : (
-          history.map((item) => (
-            <article key={item.id} className="rounded-2xl border border-white/80 bg-white/70 p-5">
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-cyan-700">Bill #{item.billCode}</p>
-                  <h2 className="mt-1 text-lg font-semibold text-slate-900">{item.buyer.name}</h2>
-                  <p className="text-sm text-slate-600">{item.buyer.email}</p>
-                </div>
-                <div className="text-right flex flex-col items-end gap-1.5">
-                  <p className="text-sm text-slate-600">{new Date(item.createdAt).toLocaleString("id-ID")}</p>
-                  <p className="text-base font-semibold text-cyan-700">Rp {item.total.toLocaleString("id-ID")}</p>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(item.id)}
-                    className="mt-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-100/70"
-                  >
-                    Hapus Riwayat
-                  </button>
-                </div>
-              </div>
-
-              <div className="mt-4 grid gap-2 text-sm text-slate-700 md:grid-cols-2">
-                <p>Metode Pembayaran: {item.paymentMethod}</p>
-                <p>Status: {item.statusLabel}</p>
-              </div>
-
-              <div className="mt-4 rounded-xl border border-cyan-100 bg-white/80 p-3">
-                <p className="text-sm font-semibold text-slate-800">List Produk Dibeli</p>
-                <ul className="mt-2 space-y-1 text-sm text-slate-700">
-                  {item.items.map((line) => (
-                    <li key={line.id}>
-                      {line.productName} - {line.quantityKg.toLocaleString("id-ID")} kg x Rp {line.unitPrice.toLocaleString("id-ID")}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </article>
-          ))
         )}
-      </div>
-    </section>
+
+        <div>
+          <label className="block text-sm text-slate-700">Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="admin@infotani.id"
+            title="Email admin"
+            className="mt-1 w-full rounded-xl border border-cyan-100 bg-white/90 px-3 py-2.5 outline-none focus:border-cyan-400"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm text-slate-700">Password</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Minimal 6 karakter"
+            title="Password admin"
+            className="mt-1 w-full rounded-xl border border-cyan-100 bg-white/90 px-3 py-2.5 outline-none focus:border-cyan-400"
+          />
+        </div>
+
+        {error && <p className="text-sm text-rose-600">{error}</p>}
+        {success && <p className="text-sm text-emerald-600">{success}</p>}
+
+        <div className="flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={() => setIsRegisterMode((prev) => !prev)}
+            className="rounded-xl border border-cyan-200 bg-white/80 px-4 py-2 text-sm font-semibold text-cyan-700"
+          >
+            {isRegisterMode ? "Sudah punya akun? Login" : "Buat akun admin"}
+          </button>
+          <button className="rounded-xl bg-cyan-600 px-4 py-2.5 font-semibold text-white shadow-lg shadow-cyan-500/20">
+            {isRegisterMode ? "Daftar & Masuk" : "Masuk"}
+          </button>
+        </div>
+      </form>
+    </main>
   );
 }

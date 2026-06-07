@@ -70,6 +70,7 @@ export default function AdminOrdersPage() {
     return await response.text();
   }
 
+  // To avoid hydration mismatch
   useEffect(() => {
     setIsMounted(true);
   }, []);

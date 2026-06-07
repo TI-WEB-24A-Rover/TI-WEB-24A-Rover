@@ -26,7 +26,7 @@ export function getStoredToken(): string | null {
 /**
  * Store JWT token (stub, no longer using localStorage)
  */
-export function setStoredToken(token: string): void {
+export function setStoredToken(_token: string): void {
   // Sesi disimpan secara aman via HTTP-only cookie oleh server
 }
 

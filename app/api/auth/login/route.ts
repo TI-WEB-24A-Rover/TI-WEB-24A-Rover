@@ -1,73 +1,35 @@
-import { NextResponse, NextRequest } from "next/server";
-import bcrypt from "bcryptjs";
-import { generateAccessToken } from "@/lib/auth";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { signAccessToken, verifyPassword } from "@/lib/auth";
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { email, password } = body;
+    const email = String(body?.email || "").trim().toLowerCase();
+    const password = String(body?.password || "");
 
     if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email dan password wajib diisi." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "email dan password wajib diisi." }, { status: 400 });
     }
 
-    // Find user by email
-    const user = await prisma.user.findUnique({
-      where: { email: email.trim().toLowerCase() },
-    });
-
+    const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      return NextResponse.json(
-        { error: "Email atau password salah." },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Email atau password salah." }, { status: 401 });
     }
 
-    // Verify password
-    let isValid = false;
-    try {
-      isValid = await bcrypt.compare(password, user.passwordHash);
-    } catch {
-      // If bcrypt compare fails, it might be due to a malformed hash or plain text seed password
-      isValid = false;
+    const valid = await verifyPassword(password, user.passwordHash);
+    if (!valid) {
+      return NextResponse.json({ error: "Email atau password salah." }, { status: 401 });
     }
 
-    // Fallback comparison for unhashed seed passwords (like 'seed-password')
-    if (!isValid && user.passwordHash === password) {
-      isValid = true;
-    }
-
-    if (!isValid) {
-      return NextResponse.json(
-        { error: "Email atau password salah." },
-        { status: 401 }
-      );
-    }
-
-    // Generate token
-    const token = generateAccessToken({
+    const token = signAccessToken({
       sub: user.id,
-      email: user.email,
       role: user.role,
+      email: user.email,
     });
 
-    // Save session in database
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
-
-    await prisma.session.create({
-      data: {
-        userId: user.id,
-        token,
-        expiresAt,
-      },
-    });
-
-    const response = NextResponse.json({
+    return NextResponse.json({
+      ok: true,
       token,
       user: {
         id: user.id,
@@ -75,20 +37,13 @@ export async function POST(request: NextRequest) {
         email: user.email,
         role: user.role,
         phone: user.phone,
+        gender: user.gender,
+        birthDate: user.birthDate,
+        image: user.image,
       },
     });
-
-    // Import cookie name and options
-    const { COOKIE_NAME, COOKIE_OPTIONS } = await import("@/lib/auth");
-    response.cookies.set(COOKIE_NAME, token, COOKIE_OPTIONS);
-
-    return response;
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Gagal melakukan login.";
-    return NextResponse.json(
-      { error: message },
-      { status: 500 }
-    );
+    const message = error instanceof Error ? error.message : "Gagal login.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
-

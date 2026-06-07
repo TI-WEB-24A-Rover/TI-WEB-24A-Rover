@@ -170,7 +170,16 @@ export default function AdminDashboardPage() {
             className="rounded-2xl border border-white/60 bg-white/50 p-5 shadow-sm backdrop-blur-sm transition hover:bg-white/65"
           >
             <p className="text-xs uppercase tracking-[0.15em] text-slate-500">{card.label}</p>
-            <p className="mt-3 text-3xl font-bold text-slate-900">{card.value}</p>
+            <p
+              className={`mt-3 font-bold text-slate-900 truncate ${
+                card.value.length > 10
+                  ? "text-xl sm:text-2xl xl:text-3xl"
+                  : "text-3xl"
+              }`}
+              title={card.value}
+            >
+              {card.value}
+            </p>
           </article>
         ))}
       </div>
@@ -183,7 +192,7 @@ export default function AdminDashboardPage() {
             <p className="mt-1 text-sm text-slate-500">Monitoring performa 7 hari terakhir</p>
           </div>
           <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} initialDimension={{ width: 100, height: 100 }}>
               <AreaChart data={daily} margin={{ top: 20, right: 12, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="dailyGradient" x1="0" y1="0" x2="0" y2="1">
@@ -210,7 +219,7 @@ export default function AdminDashboardPage() {
             <p className="mt-1 text-sm text-slate-500">Ringkasan 4 minggu terakhir</p>
           </div>
           <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} initialDimension={{ width: 100, height: 100 }}>
               <AreaChart data={weekly} margin={{ top: 20, right: 12, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="weeklyGradient" x1="0" y1="0" x2="0" y2="1">

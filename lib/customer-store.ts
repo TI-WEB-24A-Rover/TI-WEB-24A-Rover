@@ -42,6 +42,21 @@ export type CustomerOrder = OrderItem & {
   trackingNote: string;
   truckLocation: string;
   destination: string;
+  customerName?: string;
+  customerPhone?: string;
+  customerEmail?: string;
+  items?: Array<{
+    id: string;
+    productId: string;
+    productName: string;
+    quantityKg: number;
+    unitPrice: number;
+    subtotal: number;
+  }>;
+  paymentStatus?: string;
+  estimatedArrival?: string | null;
+  currentLat?: number | null;
+  currentLng?: number | null;
 };
 
 export type AuthSession = {
@@ -118,19 +133,24 @@ export function clearSession() {
 }
 
 export function saveToken(token: string) {
-  // Sesi/token disimpan via cookie oleh server
+  writeJson(TOKEN_KEY, token);
 }
 
 export function getStoredToken() {
-  return null;
+  return readJson<string | null>(TOKEN_KEY, null);
 }
 
 export async function verifyStoredSession() {
+  const token = getStoredToken();
+  if (!token) {
+    return null;
+  }
+
   try {
     const response = await fetch("/api/auth/verify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
+      body: JSON.stringify({ token }),
     });
 
     if (!response.ok) {
@@ -144,7 +164,6 @@ export async function verifyStoredSession() {
     return null;
   }
 }
-
 
 export function getStoredOrders() {
   return readJson<CustomerOrder[]>(ORDERS_KEY, []);

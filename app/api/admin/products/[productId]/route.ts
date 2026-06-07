@@ -1,24 +1,57 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth } from "@/lib/api-auth";
+
+function resolveTenantId(req: NextRequest) {
+  return req.headers.get("x-farmer-id")?.trim() || "";
+}
+
+async function resolveFarmerUserId(tenantId: string) {
+  const existing = await prisma.user.findFirst({
+    where: {
+      OR: [{ id: tenantId }, { email: `${tenantId}@infotani.local` }],
+      role: "FARMER",
+    },
+    select: { id: true },
+  });
+
+  if (existing) {
+    return existing.id;
+  }
+
+  const created = await prisma.user.create({
+    data: {
+      id: tenantId,
+      name: `Petani ${tenantId.slice(-6)}`,
+      email: `${tenantId}@infotani.local`,
+      passwordHash: tenantId,
+      role: "FARMER",
+    },
+    select: { id: true },
+  });
+
+  return created.id;
+}
 
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ productId: string }> },
 ) {
   try {
-    const auth = await requireAuth(req, ["FARMER", "ADMIN"]);
-    if (!auth.user) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    const { productId } = await params;
+    const tenantId = resolveTenantId(req);
+
+    if (!tenantId) {
+      return NextResponse.json({ error: "Header x-farmer-id wajib diisi" }, { status: 400 });
     }
 
-    const { productId } = await params;
+    const farmerId = await resolveFarmerUserId(tenantId);
+
     const body = await req.json();
     const { name, stockKg, pricePerKg, imageUrl, description } = body;
 
     const existing = await prisma.product.findUnique({ where: { id: productId } });
 
-    if (!existing || (auth.user.role !== "ADMIN" && existing.farmerId !== auth.user.id)) {
+    if (!existing || existing.farmerId !== farmerId) {
       return NextResponse.json({ error: "Produk tidak ditemukan atau Anda tidak memiliki akses" }, { status: 404 });
     }
 
@@ -76,15 +109,18 @@ export async function DELETE(
   { params }: { params: Promise<{ productId: string }> },
 ) {
   try {
-    const auth = await requireAuth(req, ["FARMER", "ADMIN"]);
-    if (!auth.user) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    const { productId } = await params;
+    const tenantId = resolveTenantId(req);
+
+    if (!tenantId) {
+      return NextResponse.json({ error: "Header x-farmer-id wajib diisi" }, { status: 400 });
     }
 
-    const { productId } = await params;
+    const farmerId = await resolveFarmerUserId(tenantId);
+
     const product = await prisma.product.findUnique({ where: { id: productId } });
 
-    if (!product || (auth.user.role !== "ADMIN" && product.farmerId !== auth.user.id)) {
+    if (!product || product.farmerId !== farmerId) {
       return NextResponse.json({ error: "Produk tidak ditemukan atau Anda tidak memiliki akses" }, { status: 404 });
     }
 
@@ -96,4 +132,4 @@ export async function DELETE(
     console.error("DELETE /api/admin/products/[productId] error:", error);
     return NextResponse.json({ error: message }, { status: 500 });
   }
-}
+}

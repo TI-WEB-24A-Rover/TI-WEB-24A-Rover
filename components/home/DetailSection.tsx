@@ -9,7 +9,7 @@ const detailItems = [
     title: "Transparansi Stok Dari Lahan ke Gudang",
     description:
       "Setiap petani mitra di Lampung dapat mengunggah kapasitas panen aktual, tanggal siap kirim, dan foto kondisi komoditas. Distributor mendapat visibilitas penuh untuk merencanakan pembelian tanpa menunggu laporan manual.",
-    image: "/gambar2.webp",
+    image: "/detail-stok_webP.webp",
     alt: "Pantauan stok panen petani Lampung",
     Icon: ScanLine,
     reverse: false,
@@ -51,7 +51,7 @@ export default function DetailSection() {
               reverse ? "lg:order-1" : "lg:order-2"
             }`}
           >
-            <Image src={image} alt={alt} fill className="object-cover" />
+            <Image src={image} alt={alt} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 50vw" />
           </div>
         </article>
       ))}

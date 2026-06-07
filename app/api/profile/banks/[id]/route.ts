@@ -2,48 +2,59 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 
-export async function GET(request: NextRequest) {
+type Context = {
+  params: Promise<{ id: string }>;
+};
+
+export async function PATCH(request: NextRequest, context: Context) {
   const auth = await requireAuth(request, ["CUSTOMER", "FARMER"]);
   if (!auth.user) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
-  const data = await prisma.bankAccount.findMany({
-    where: { userId: auth.user.id },
-    orderBy: { createdAt: "desc" },
-  });
-
-  return NextResponse.json({ ok: true, data });
-}
-
-export async function POST(request: NextRequest) {
-  const auth = await requireAuth(request, ["CUSTOMER", "FARMER"]);
-  if (!auth.user) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
-  }
+  const { id } = await context.params;
 
   try {
-    const body = await request.json();
-    const bankName = String(body?.bankName || "").trim();
-    const accountNumber = String(body?.accountNumber || "").trim();
-    const accountHolder = String(body?.accountHolder || "").trim();
+    const existing = await prisma.bankAccount.findFirst({
+      where: { id, userId: auth.user.id },
+    });
 
-    if (!bankName || !accountNumber || !accountHolder) {
-      return NextResponse.json({ error: "Semua field bank wajib diisi." }, { status: 400 });
+    if (!existing) {
+      return NextResponse.json({ error: "Rekening tidak ditemukan." }, { status: 404 });
     }
 
-    const created = await prisma.bankAccount.create({
+    const body = await request.json();
+    const updated = await prisma.bankAccount.update({
+      where: { id },
       data: {
-        userId: auth.user.id,
-        bankName,
-        accountNumber,
-        accountHolder,
+        bankName: body?.bankName ? String(body.bankName).trim() : undefined,
+        accountNumber: body?.accountNumber ? String(body.accountNumber).trim() : undefined,
+        accountHolder: body?.accountHolder ? String(body.accountHolder).trim() : undefined,
       },
     });
 
-    return NextResponse.json({ ok: true, data: created }, { status: 201 });
+    return NextResponse.json({ ok: true, data: updated });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Gagal menambah rekening.";
+    const message = error instanceof Error ? error.message : "Gagal update rekening.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
+}
+
+export async function DELETE(request: NextRequest, context: Context) {
+  const auth = await requireAuth(request, ["CUSTOMER", "FARMER"]);
+  if (!auth.user) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
+
+  const { id } = await context.params;
+
+  const deleted = await prisma.bankAccount.deleteMany({
+    where: { id, userId: auth.user.id },
+  });
+
+  if (deleted.count === 0) {
+    return NextResponse.json({ error: "Rekening tidak ditemukan." }, { status: 404 });
+  }
+
+  return NextResponse.json({ ok: true });
 }

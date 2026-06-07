@@ -6,12 +6,105 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import {
-  api,
-  getStoredToken,
-  setStoredToken,
-  clearStoredToken,
-} from './api-client';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+interface ApiRequestOptions extends RequestInit {
+  params?: Record<string, string | number | boolean>;
+}
+
+interface ApiResponse<T = Record<string, unknown>> {
+  ok: boolean;
+  data?: T;
+  error?: string;
+  status?: number;
+}
+
+function getStoredToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('auth_token');
+}
+
+function setStoredToken(token: string): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('auth_token', token);
+}
+
+function clearStoredToken(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('auth_token');
+}
+
+async function apiCall<T = Record<string, unknown>>(
+  endpoint: string,
+  options: ApiRequestOptions = {},
+): Promise<ApiResponse<T>> {
+  const { params, ...fetchOptions } = options;
+
+  let url = `${API_BASE_URL}${endpoint}`;
+  if (params) {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      searchParams.append(key, String(value));
+    });
+    url += `?${searchParams.toString()}`;
+  }
+
+  const headers = new Headers(fetchOptions.headers || {});
+  headers.set('Content-Type', 'application/json');
+
+  const token = getStoredToken();
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+
+  try {
+    const response = await fetch(url, {
+      ...fetchOptions,
+      headers,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return {
+        ok: false,
+        error: data?.error || `HTTP ${response.status}`,
+        status: response.status,
+      };
+    }
+
+    return {
+      ok: true,
+      data: data?.data || data,
+      status: response.status,
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return {
+      ok: false,
+      error: errorMessage,
+      status: 0,
+    };
+  }
+}
+
+const api = {
+  get: <T = Record<string, unknown>>(endpoint: string, options?: ApiRequestOptions) =>
+    apiCall<T>(endpoint, { ...options, method: 'GET' }),
+  post: <T = Record<string, unknown>>(
+    endpoint: string,
+    body?: unknown,
+    options?: ApiRequestOptions,
+  ) => apiCall<T>(endpoint, { ...options, method: 'POST', body: JSON.stringify(body) }),
+  patch: <T = Record<string, unknown>>(
+    endpoint: string,
+    body?: unknown,
+    options?: ApiRequestOptions,
+  ) => apiCall<T>(endpoint, { ...options, method: 'PATCH', body: JSON.stringify(body) }),
+  delete: <T = Record<string, unknown>>(endpoint: string, options?: ApiRequestOptions) =>
+    apiCall<T>(endpoint, { ...options, method: 'DELETE' }),
+};
 
 // Types
 export interface User {
@@ -105,6 +198,7 @@ export interface Order {
   customer?: User;
   farmer?: User;
   logisticsVehicle?: LogisticsVehicle;
+  trackingPoints?: TrackingPoint[];
   createdAt?: string;
 }
 
@@ -141,33 +235,11 @@ export function useAuth() {
   const [error, setError] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Check if user is logged in on mount using server verification
+  // Check if user is logged in on mount
   useEffect(() => {
-    const checkAuth = async () => {
-      setLoading(true);
-      try {
-        const res = await api.post<{ userId: string; email: string; role: 'CUSTOMER' | 'FARMER'; name: string }>('/api/auth/verify', {});
-        if (res.ok && res.data) {
-          setUser({
-            id: res.data.userId,
-            email: res.data.email,
-            role: res.data.role,
-            name: res.data.name,
-          });
-          setIsLoggedIn(true);
-        } else {
-          setUser(null);
-          setIsLoggedIn(false);
-        }
-      } catch {
-        setUser(null);
-        setIsLoggedIn(false);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
+    if (getStoredToken()) {
+      setIsLoggedIn(true);
+    }
   }, []);
 
   const signup = useCallback(async (payload: SignupPayload) => {
@@ -176,6 +248,7 @@ export function useAuth() {
     try {
       const res = await api.post<{ token: string; user: User }>('/api/auth/signup', payload);
       if (res.ok && res.data) {
+        setStoredToken(res.data.token);
         setUser(res.data.user);
         setIsLoggedIn(true);
         return { ok: true, data: res.data };
@@ -194,6 +267,7 @@ export function useAuth() {
     try {
       const res = await api.post<{ token: string; user: User }>('/api/auth/login', payload);
       if (res.ok && res.data) {
+        setStoredToken(res.data.token);
         setUser(res.data.user);
         setIsLoggedIn(true);
         return { ok: true, data: res.data };
@@ -206,22 +280,14 @@ export function useAuth() {
     }
   }, []);
 
-  const logout = useCallback(async () => {
-    setLoading(true);
-    try {
-      await api.post('/api/auth/logout', {});
-    } catch {
-      // ignore logout failure, proceed to clear local state
-    } finally {
-      setUser(null);
-      setIsLoggedIn(false);
-      setLoading(false);
-    }
+  const logout = useCallback(() => {
+    clearStoredToken();
+    setUser(null);
+    setIsLoggedIn(false);
   }, []);
 
   return { user, loading, error, isLoggedIn, signup, login, logout };
 }
-
 
 // ============================================================================
 // PROFILE HOOKS
@@ -641,7 +707,10 @@ export function usePayment() {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.post(`/api/orders/${orderId}/payment`, {});
+      const res = await api.post<{ token: string; url: string; orderId: string }>(
+        `/api/orders/${orderId}/payment`,
+        {}
+      );
       if (res.ok && res.data) {
         return { ok: true, data: res.data };
       } else {
@@ -790,8 +859,9 @@ export function useAdminOrders() {
 
       const res = await api.get(`/api/admin/orders?${params.toString()}`);
       if (res.ok && res.data) {
-        setOrders((res.data as { data: object[] }).data || []);
-        setPagination((res.data as { pagination: object }).pagination || { page: 1, limit: 10, total: 0, pages: 0 });
+        const payload = res.data as { data: AdminOrder[]; pagination: typeof pagination };
+        setOrders(payload.data || []);
+        setPagination(payload.pagination || { page: 1, limit: 10, total: 0, pages: 0 });
         return { ok: true, data: res.data };
       } else {
         setError(res.error || 'Failed to fetch orders');

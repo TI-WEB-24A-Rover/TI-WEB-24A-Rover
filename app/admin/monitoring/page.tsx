@@ -73,6 +73,7 @@ export default function AdminMonitoringPage() {
   const mapLng = activeOrder?.currentLng ?? activeMovement.lng;
   const mapLabel = activeOrder?.trackingPoints?.[0]?.note ?? activeMovement.label;
 
+  // To avoid hydration mismatch
   useEffect(() => {
     setIsMounted(true);
   }, []);

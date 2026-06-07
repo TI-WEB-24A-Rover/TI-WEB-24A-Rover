@@ -44,7 +44,6 @@ model User {
   products     Product[]
   orders       Order[]       @relation("CustomerOrders")
   soldOrders   Order[]       @relation("FarmerOrders")
-  sessions     Session[]
 }
 
 model Address {
@@ -267,7 +266,6 @@ model Payment {
   @@index([status])
 }
 
-
 model OrderMessage {
   id        String   @id @default(cuid())
   orderId   String
@@ -280,15 +278,4 @@ model OrderMessage {
 
   @@index([orderId])
   @@index([status])
-}
-
-model Session {
-  id        String   @id @default(cuid())
-  userId    String
-  token     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
 }

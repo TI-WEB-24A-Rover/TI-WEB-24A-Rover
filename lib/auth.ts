@@ -1,30 +1,34 @@
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 export type AuthRole = "ADMIN" | "CUSTOMER" | "FARMER";
 
-export interface TokenPayload {
+export type AuthTokenPayload = {
   sub: string;
-  email: string;
   role: AuthRole;
-}
-
-const JWT_SECRET = process.env.JWT_SECRET || "infotani-super-secret-change-this";
-
-export function generateAccessToken(payload: { sub: string; email: string; role: AuthRole }): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
-}
-
-export function verifyAccessToken(token: string): TokenPayload {
-  return jwt.verify(token, JWT_SECRET) as TokenPayload;
-}
-
-export const COOKIE_NAME = "auth_token";
-
-export const COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax" as const,
-  path: "/",
-  maxAge: 7 * 24 * 60 * 60, // 7 days
+  email: string;
 };
 
+const DEFAULT_JWT_SECRET = "dev-infotani-secret-change-me";
+
+function getJwtSecret() {
+  return process.env.JWT_SECRET || DEFAULT_JWT_SECRET;
+}
+
+export async function hashPassword(password: string) {
+  return bcrypt.hash(password, 10);
+}
+
+export async function verifyPassword(password: string, hash: string) {
+  return bcrypt.compare(password, hash);
+}
+
+export function signAccessToken(payload: AuthTokenPayload) {
+  return jwt.sign(payload, getJwtSecret(), {
+    expiresIn: "7d",
+  });
+}
+
+export function verifyAccessToken(token: string) {
+  return jwt.verify(token, getJwtSecret()) as AuthTokenPayload;
+}

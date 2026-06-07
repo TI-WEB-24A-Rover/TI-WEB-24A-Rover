@@ -8,9 +8,9 @@ import {
   getAdminAccountByCatalogId,
   getTenantCatalog,
 } from "@/lib/admin-store";
-import DetailInteractivePanel from "@/components/info_tani/DetailInteractivePanel";
-import ProfileSection from "@/components/info_tani/ProfileSection";
-import StockDashboard from "@/components/info_tani/StockDashboard";
+import DetailInteractivePanel from "@/components/info-tani/DetailInteractivePanel";
+import ProfileSection from "@/components/info-tani/ProfileSection";
+import StockDashboard from "@/components/info-tani/StockDashboard";
 import { buildGoogleMapsFallbackUrl, normalizeGoogleMapsEmbedUrl } from "@/lib/google-maps";
 
 type RemoteProfile = {
