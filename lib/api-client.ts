@@ -17,28 +17,26 @@ interface ApiResponse<T = Record<string, unknown>> {
 }
 
 /**
- * Get stored JWT token from localStorage
+ * Get stored JWT token (stub, no longer using localStorage)
  */
 export function getStoredToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('auth_token');
+  return null;
 }
 
 /**
- * Store JWT token in localStorage
+ * Store JWT token (stub, no longer using localStorage)
  */
 export function setStoredToken(token: string): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem('auth_token', token);
+  // Sesi disimpan secara aman via HTTP-only cookie oleh server
 }
 
 /**
- * Clear stored JWT token
+ * Clear stored JWT token (stub, no longer using localStorage)
  */
 export function clearStoredToken(): void {
-  if (typeof window === 'undefined') return;
-  localStorage.removeItem('auth_token');
+  // Sesi dibersihkan oleh server via API logout
 }
+
 
 /**
  * Main API client function

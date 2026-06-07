@@ -181,7 +181,6 @@ export default function DetailInteractivePanel({
     },
   ]);
   const [paymentNotice, setPaymentNotice] = useState<string | null>(null);
-  const [isVerifyingSession, setIsVerifyingSession] = useState(true);
   const [receipt, setReceipt] = useState<{
     billCode: string;
     orderId: string;
@@ -231,7 +230,6 @@ export default function DetailInteractivePanel({
   // Verify stored session token on mount
   useEffect(() => {
     if (!isHydrated || !currentSession?.token) {
-      setIsVerifyingSession(false);
       return;
     }
 
@@ -240,8 +238,6 @@ export default function DetailInteractivePanel({
         await verifyStoredSession();
       } catch {
         // Session verification failed silently
-      } finally {
-        setIsVerifyingSession(false);
       }
     })();
   }, [isHydrated, currentSession?.token]);
@@ -390,7 +386,7 @@ export default function DetailInteractivePanel({
         const paymentData = await paymentResponse.json();
         if (paymentData.data?.url) {
           // Redirect to Midtrans payment page
-          window.location.href = paymentData.data.url;
+          window.location.assign(paymentData.data.url);
           return;
         }
       }

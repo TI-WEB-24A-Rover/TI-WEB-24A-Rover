@@ -76,9 +76,6 @@ export default function AdminProfilePage() {
   const [geoError, setGeoError] = useState("");
 
   const initialCenterRef = useRef<[number, number] | null>(null);
-  if (!initialCenterRef.current && Number.isFinite(form.latitude) && Number.isFinite(form.longitude)) {
-    initialCenterRef.current = [form.latitude, form.longitude];
-  }
 
   // Load Leaflet CDN script and stylesheet dynamically
   useEffect(() => {
@@ -337,23 +334,23 @@ export default function AdminProfilePage() {
       const payload = await response.json();
       const profile = payload?.data;
 
+      const lat = Number(profile?.latitude ?? initialForm.latitude);
+      const lng = Number(profile?.longitude ?? initialForm.longitude);
       setForm({
         farmerName: profile?.farmerName || session.name || "",
         profilePhoto: profile?.profilePhoto || "",
         catalogBanner: profile?.catalogBanner || "",
         description: profile?.description || "",
         catalogMapUrl: profile?.catalogMapUrl || "",
-        latitude: Number(profile?.latitude ?? initialForm.latitude),
-        longitude: Number(profile?.longitude ?? initialForm.longitude),
+        latitude: lat,
+        longitude: lng,
         bankName: profile?.bankName || "",
         accountNumber: profile?.accountNumber || "",
       });
+      initialCenterRef.current = [lat, lng];
       setResolvedMapUrl(
         profile?.catalogMapUrl ||
-          buildGoogleMapsFallbackUrl(
-            Number(profile?.latitude ?? initialForm.latitude),
-            Number(profile?.longitude ?? initialForm.longitude),
-          ),
+          buildGoogleMapsFallbackUrl(lat, lng),
       );
       setProfileMeta({ updatedAt: profile?.updatedAt ?? null });
     })();

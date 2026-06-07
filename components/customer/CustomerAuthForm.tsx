@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, KeyRound, Mail, Phone, UserRound } from "lucide-react";
 import {
   CustomerAccount,
-  getStoredCustomer,
   saveCustomer,
   saveSession,
   saveToken,

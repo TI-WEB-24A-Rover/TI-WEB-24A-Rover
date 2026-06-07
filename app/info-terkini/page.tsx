@@ -3,7 +3,7 @@ import {
   BadgeInfo,
   ShieldCheck,
 } from "lucide-react";
-import SupplyTable from "@/components/info_terkini/SupplyTable";
+import SupplyTable from "@/components/info-terkini/SupplyTable";
 
 const statCards = [
   {

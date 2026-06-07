@@ -1,53 +1,17 @@
-"use client";
+import "../globals.css";
+import AdminLayoutShell from "@/components/admin/AdminLayoutShell";
 
-import { useEffect, useState } from "react";
-import {
-  AdminAccount,
-  AdminCatalog,
-  AdminSession,
-  clearAdminSession,
-  ensureAdminSession,
-  getTenantCatalog,
-} from "@/lib/admin-store";
-
-export type AdminTenantContext = {
-  ready: boolean;
-  session: AdminSession | null;
-  account: AdminAccount | null;
-  catalog: AdminCatalog | null;
+export const metadata = {
+  title: "Admin - InfoTani",
 };
 
-const initialContext: AdminTenantContext = {
-  ready: false,
-  session: null,
-  account: null,
-  catalog: null,
-};
-
-export function useAdminTenant() {
-  const [context, setContext] = useState<AdminTenantContext>(initialContext);
-
-  useEffect(() => {
-    const value = ensureAdminSession();
-    if (!value) {
-      clearAdminSession();
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setContext({
-        ready: true,
-        session: null,
-        account: null,
-        catalog: null,
-      });
-      return;
-    }
-
-    setContext({
-      ready: true,
-      session: value.session,
-      account: value.account,
-      catalog: getTenantCatalog(value.session.assignedCatalogId),
-    });
-  }, []);
-
-  return context;
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      suppressHydrationWarning
+      className="min-h-screen bg-[radial-gradient(circle_at_top_left,#b6eeff_0%,#e6fbff_44%,#d7f3ff_100%)] text-slate-800"
+    >
+      <AdminLayoutShell>{children}</AdminLayoutShell>
+    </div>
+  );
 }

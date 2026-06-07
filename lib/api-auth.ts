@@ -1,38 +1,54 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { AuthRole, verifyAccessToken } from "@/lib/auth";
+import { AuthRole, verifyAccessToken, COOKIE_NAME } from "@/lib/auth";
 
-export function getBearerToken(request: NextRequest) {
+export function getAuthToken(request: NextRequest) {
+  // 1. Coba ambil dari header Authorization
   const authHeader = request.headers.get("authorization") || "";
-  if (!authHeader.toLowerCase().startsWith("bearer ")) {
-    return null;
+  if (authHeader.toLowerCase().startsWith("bearer ")) {
+    return authHeader.slice(7).trim();
   }
-  return authHeader.slice(7).trim();
+
+  // 2. Coba ambil dari cookie
+  const cookieToken = request.cookies.get(COOKIE_NAME)?.value;
+  if (cookieToken) {
+    return cookieToken;
+  }
+
+  return null;
 }
 
 export async function getCurrentUser(request: NextRequest) {
-  const token = getBearerToken(request);
+  const token = getAuthToken(request);
   if (!token) {
     return null;
   }
 
   try {
+    // Verifikasi tanda tangan JWT
     const payload = verifyAccessToken(token);
-    const user = await prisma.user.findUnique({
-      where: { id: payload.sub },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        name: true,
+
+    // Cek di database apakah sesi ini valid dan terdaftar
+    const dbSession = await prisma.session.findUnique({
+      where: { token },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            role: true,
+            name: true,
+          },
+        },
       },
     });
 
-    if (!user) {
+    // Validasi apakah sesi ada, cocok dengan payload, dan belum kedaluwarsa
+    if (!dbSession || dbSession.userId !== payload.sub || dbSession.expiresAt < new Date()) {
       return null;
     }
 
-    return user;
+    return dbSession.user;
   } catch {
     return null;
   }
@@ -49,4 +65,4 @@ export async function requireAuth(request: NextRequest, allowedRoles?: AuthRole[
   }
 
   return { error: null, status: 200 as const, user };
-}
+}

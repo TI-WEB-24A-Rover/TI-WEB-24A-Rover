@@ -40,6 +40,7 @@ export default function AdminProductsPage() {
   const [items, setItems] = useState<ProductForm[]>([]);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [lastSavedProductId, setLastSavedProductId] = useState<string | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   useEffect(() => {
@@ -131,6 +132,25 @@ export default function AdminProductsPage() {
     return `Kelola stok & harga ${catalog.name}`;
   }, [catalog?.name]);
 
+  const productProgress = useMemo(() => {
+    const checks = [
+      form.name.trim().length >= 3,
+      form.stockKg > 0,
+      form.pricePerKg > 0,
+      Boolean(form.imageUrl),
+    ];
+
+    return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+  }, [form.imageUrl, form.name, form.pricePerKg, form.stockKg]);
+
+  function getProgressWidthClass(progress: number) {
+    if (progress <= 0) return "w-0";
+    if (progress <= 25) return "w-1/4";
+    if (progress <= 50) return "w-1/2";
+    if (progress <= 75) return "w-3/4";
+    return "w-full";
+  }
+
   function handleImageUpload(imageUrl: string) {
     setForm((prev) => ({ ...prev, imageUrl }));
   }
@@ -184,6 +204,7 @@ export default function AdminProductsPage() {
 
       const data = await response.json();
       addToast(data.message || "Produk berhasil disimpan", "success");
+      setLastSavedProductId(data?.data?.id ?? form.id ?? null);
 
       // Refresh products list
       await fetchProducts();
@@ -314,6 +335,16 @@ export default function AdminProductsPage() {
           {form.id ? "Edit Produk" : "Tambah Produk Baru"}
         </h2>
 
+        <div className="mb-5 space-y-2">
+          <div className="flex items-center justify-between gap-3 text-sm text-slate-600">
+            <span>Progress form produk</span>
+            <span className="font-semibold text-cyan-700">{productProgress}%</span>
+          </div>
+          <div className="h-2 rounded-full bg-cyan-100">
+            <div className={`h-2 rounded-full bg-cyan-600 transition-all ${getProgressWidthClass(productProgress)}`} />
+          </div>
+        </div>
+
         <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
           <div className="space-y-4">
             <label className="block">
@@ -375,8 +406,14 @@ export default function AdminProductsPage() {
             </button>
 
             {form.imageUrl && (
-              <div className="mt-3 overflow-hidden rounded-xl border border-cyan-100 bg-white">
-                <Image src={form.imageUrl} alt="Preview produk" width={200} height={140} className="h-36 w-full object-cover" />
+              <div className="mt-3 space-y-2">
+                <div className="overflow-hidden rounded-xl border border-cyan-100 bg-white">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={form.imageUrl} alt="Preview produk" className="h-36 w-full object-cover" />
+                </div>
+                <div className="rounded-xl border border-cyan-100 bg-cyan-50 px-3 py-2 text-xs text-cyan-800">
+                  {lastSavedProductId && lastSavedProductId === form.id ? "Foto produk tersimpan di database." : "Foto produk siap disimpan saat klik tombol simpan."}
+                </div>
               </div>
             )}
           </div>
@@ -425,6 +462,8 @@ export default function AdminProductsPage() {
                   width={300}
                   height={150}
                   className="h-40 w-full object-cover"
+                  sizes="(max-width: 768px) 100vw, 300px"
+                  unoptimized={Boolean(item.imageUrl?.startsWith("data:"))}
                 />
                 <div className="space-y-3 p-4">
                   <div>
@@ -433,6 +472,9 @@ export default function AdminProductsPage() {
                     <p className="mt-1 text-sm font-semibold text-cyan-700">
                       Rp {Number(item.pricePerKg ?? 15000).toLocaleString("id-ID")} / kg
                     </p>
+                  </div>
+                  <div className="rounded-xl border border-cyan-100 bg-cyan-50 px-3 py-2 text-xs text-cyan-800">
+                    {lastSavedProductId === item.id ? "Baru saja tersimpan di database." : "Data produk tersimpan di database."}
                   </div>
                   <span
                     className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${

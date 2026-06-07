@@ -141,11 +141,33 @@ export function useAuth() {
   const [error, setError] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Check if user is logged in on mount
+  // Check if user is logged in on mount using server verification
   useEffect(() => {
-    if (getStoredToken()) {
-      setIsLoggedIn(true);
-    }
+    const checkAuth = async () => {
+      setLoading(true);
+      try {
+        const res = await api.post<{ userId: string; email: string; role: 'CUSTOMER' | 'FARMER'; name: string }>('/api/auth/verify', {});
+        if (res.ok && res.data) {
+          setUser({
+            id: res.data.userId,
+            email: res.data.email,
+            role: res.data.role,
+            name: res.data.name,
+          });
+          setIsLoggedIn(true);
+        } else {
+          setUser(null);
+          setIsLoggedIn(false);
+        }
+      } catch {
+        setUser(null);
+        setIsLoggedIn(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
   }, []);
 
   const signup = useCallback(async (payload: SignupPayload) => {
@@ -154,7 +176,6 @@ export function useAuth() {
     try {
       const res = await api.post<{ token: string; user: User }>('/api/auth/signup', payload);
       if (res.ok && res.data) {
-        setStoredToken(res.data.token);
         setUser(res.data.user);
         setIsLoggedIn(true);
         return { ok: true, data: res.data };
@@ -173,7 +194,6 @@ export function useAuth() {
     try {
       const res = await api.post<{ token: string; user: User }>('/api/auth/login', payload);
       if (res.ok && res.data) {
-        setStoredToken(res.data.token);
         setUser(res.data.user);
         setIsLoggedIn(true);
         return { ok: true, data: res.data };
@@ -186,14 +206,22 @@ export function useAuth() {
     }
   }, []);
 
-  const logout = useCallback(() => {
-    clearStoredToken();
-    setUser(null);
-    setIsLoggedIn(false);
+  const logout = useCallback(async () => {
+    setLoading(true);
+    try {
+      await api.post('/api/auth/logout', {});
+    } catch {
+      // ignore logout failure, proceed to clear local state
+    } finally {
+      setUser(null);
+      setIsLoggedIn(false);
+      setLoading(false);
+    }
   }, []);
 
   return { user, loading, error, isLoggedIn, signup, login, logout };
 }
+
 
 // ============================================================================
 // PROFILE HOOKS

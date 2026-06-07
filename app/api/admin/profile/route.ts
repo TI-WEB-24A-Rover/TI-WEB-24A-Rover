@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/api-auth";
 import {
   buildGoogleMapsFallbackUrl,
   normalizeGoogleMapsEmbedUrl,
 } from "@/lib/google-maps";
-
-function resolveTenantId(request: NextRequest) {
-  return request.headers.get("x-farmer-id")?.trim() || "";
-}
 
 function defaultProfile(tenantId: string) {
   return {
@@ -46,9 +43,17 @@ async function resolveCatalogMapUrl(inputUrl: string | null, latitude: number, l
 }
 
 export async function GET(request: NextRequest) {
-  const tenantId = resolveTenantId(request);
-  if (!tenantId) {
-    return NextResponse.json({ error: "Header x-farmer-id wajib diisi." }, { status: 400 });
+  const auth = await requireAuth(request, ["FARMER", "ADMIN"]);
+  if (!auth.user) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
+
+  let tenantId = auth.user.id;
+  if (auth.user.role === "ADMIN") {
+    const headerId = request.headers.get("x-farmer-id");
+    if (headerId) {
+      tenantId = headerId;
+    }
   }
 
   const profile = await prisma.farmerProfile.findUnique({
@@ -90,9 +95,17 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const tenantId = resolveTenantId(request);
-  if (!tenantId) {
-    return NextResponse.json({ error: "Header x-farmer-id wajib diisi." }, { status: 400 });
+  const auth = await requireAuth(request, ["FARMER", "ADMIN"]);
+  if (!auth.user) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
+
+  let tenantId = auth.user.id;
+  if (auth.user.role === "ADMIN") {
+    const headerId = request.headers.get("x-farmer-id");
+    if (headerId) {
+      tenantId = headerId;
+    }
   }
 
   try {

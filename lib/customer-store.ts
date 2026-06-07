@@ -118,24 +118,19 @@ export function clearSession() {
 }
 
 export function saveToken(token: string) {
-  writeJson(TOKEN_KEY, token);
+  // Sesi/token disimpan via cookie oleh server
 }
 
 export function getStoredToken() {
-  return readJson<string | null>(TOKEN_KEY, null);
+  return null;
 }
 
 export async function verifyStoredSession() {
-  const token = getStoredToken();
-  if (!token) {
-    return null;
-  }
-
   try {
     const response = await fetch("/api/auth/verify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token }),
+      body: JSON.stringify({}),
     });
 
     if (!response.ok) {
@@ -149,6 +144,7 @@ export async function verifyStoredSession() {
     return null;
   }
 }
+
 
 export function getStoredOrders() {
   return readJson<CustomerOrder[]>(ORDERS_KEY, []);
