@@ -319,6 +319,7 @@ export default function CustomerProfileDashboard() {
   const handleLogout = useCallback(() => {
     clearSession();
     setSessionName(null);
+    setAvatarPreview(null);
     router.refresh();
   }, [router]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -468,6 +469,9 @@ export default function CustomerProfileDashboard() {
               avatar: u.image ?? undefined,
             });
             setSessionName(u.name);
+            if (u.image) {
+              setAvatarPreview(u.image);
+            }
           }
         }
 
@@ -680,9 +684,13 @@ export default function CustomerProfileDashboard() {
       return;
     }
 
-    const objectUrl = URL.createObjectURL(file);
-    setAvatarPreview(objectUrl);
-    persistProfile({ ...profile, avatar: objectUrl });
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64 = e.target?.result as string;
+      setAvatarPreview(base64);
+      persistProfile({ ...profile, avatar: base64 });
+    };
+    reader.readAsDataURL(file);
   }
 
   async function handleAddAddress() {
