@@ -650,13 +650,15 @@ export default function CustomerProfileDashboard() {
 
   const trackingActive = selectedOrder?.status === "Dikirim" || Boolean(sharedTracking);
 
-  async function persistProfile(nextProfile: ProfileForm) {
-    setProfile(nextProfile);
+ async function handleSaveProfile() {
     if (typeof window !== "undefined") {
-      window.localStorage.setItem("infotani.customer.profile", JSON.stringify(nextProfile));
+      window.localStorage.setItem("infotani.customer.profile", JSON.stringify(profile));
     }
     const token = getStoredToken();
-    if (!token) return;
+     if (!token) {
+      triggerToast("Gagal ❌", "Silakan login customer terlebih dahulu.", "error");
+      return;
+    }
     try {
       await fetch("/api/profile", {
         method: "PATCH",
