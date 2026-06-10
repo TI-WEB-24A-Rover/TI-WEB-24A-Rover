@@ -31,6 +31,29 @@ informasi mengenai konsumen
 
 <img width="964" height="636" alt="image" src="https://github.com/user-attachments/assets/cfd96277-6326-4d8c-a7db-76f69cec9011" />
 
+hubungi kami
+<img width="963" height="619" alt="image" src="https://github.com/user-attachments/assets/158f113e-f73c-4327-8c0a-dcbc709315ca" />
+
+tampilan login admin create akunpetani ,jika petani membuat akun maka di akan mendapatkan katalog/toko di info terkini 
+
+<img width="960" height="631" alt="image" src="https://github.com/user-attachments/assets/e5f9ff4e-dc14-4eff-bdca-da4f97c92c4c" />
+
+
+<img width="962" height="632" alt="image" src="https://github.com/user-attachments/assets/e0ff8f53-8423-4c7d-b2e8-b21adcd69565" />
+
+<img width="966" height="634" alt="image" src="https://github.com/user-attachments/assets/9e0df321-013d-4b45-8c72-fc9ee1a16a81" />
+
+<img width="966" height="629" alt="image" src="https://github.com/user-attachments/assets/53336bdf-b6b1-4031-9b48-b103b4063065" />
+
+<img width="956" height="644" alt="image" src="https://github.com/user-attachments/assets/668bd9c4-c002-4866-87db-390594e37c59" />
+
+<img width="956" height="632" alt="image" src="https://github.com/user-attachments/assets/4e6a73fb-7874-4b2c-bd4b-3e75dcce8e86" />
+
+<img width="952" height="638" alt="image" src="https://github.com/user-attachments/assets/62bf5eab-3a46-430e-9608-a29ec11bae5d" />
+
+
+
+
 
 
 
