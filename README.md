@@ -23,7 +23,7 @@ monitoring menegenai mitra yang terjalin di seluruh indonesia
 <img width="971" height="648" alt="image" src="https://github.com/user-attachments/assets/a8e9a738-9f41-4cea-9cd6-4f34ac49607f" />
 
 
-informasi tentang seputar pertanian di pemerinta ,iternasinal inovasi pertanian, distribusi import export serta mengenai informasi berita upto date sektor pertanian,buah buahan,mitra,sumber daya alam indonesia menegnai pasokan bahan baku makanan produksi alam indonesia di bidang industri.
+informasi tentang seputar pertanian di pemerinta ,iternasional inovasi pertanian, distribusi import export serta mengenai informasi berita upto date sektor pertanian,buah buahan,mitra,sumber daya alam indonesia menegnai pasokan bahan baku makanan produksi alam indonesia di bidang industri.
 
 <img width="975" height="648" alt="image" src="https://github.com/user-attachments/assets/c74f8458-1524-4cd2-b499-8864925bfc1c" />
 
