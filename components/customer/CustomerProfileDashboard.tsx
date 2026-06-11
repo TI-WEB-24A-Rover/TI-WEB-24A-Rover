@@ -319,6 +319,7 @@ export default function CustomerProfileDashboard() {
   const handleLogout = useCallback(() => {
     clearSession();
     setSessionName(null);
+    setAvatarPreview(null);
     router.refresh();
   }, [router]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -468,6 +469,9 @@ export default function CustomerProfileDashboard() {
               avatar: u.image ?? undefined,
             });
             setSessionName(u.name);
+            if (u.image) {
+              setAvatarPreview(u.image);
+            }
           }
         }
 
@@ -646,33 +650,42 @@ export default function CustomerProfileDashboard() {
 
   const trackingActive = selectedOrder?.status === "Dikirim" || Boolean(sharedTracking);
 
-  async function persistProfile(nextProfile: ProfileForm) {
-    setProfile(nextProfile);
+ async function handleSaveProfile() {
     if (typeof window !== "undefined") {
-      window.localStorage.setItem("infotani.customer.profile", JSON.stringify(nextProfile));
+      window.localStorage.setItem("infotani.customer.profile", JSON.stringify(profile));
     }
     const token = getStoredToken();
-    if (!token) return;
+     if (!token) {
+      triggerToast("Gagal ❌", "Silakan login customer terlebih dahulu.", "error");
+      return;
+    }
     try {
-      await fetch("/api/profile", {
+     const response = await fetch("/api/profile", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          name: nextProfile.fullName,
-          phone: nextProfile.phone,
-          gender: nextProfile.gender,
-          birthDate: nextProfile.birthDate,
-          image: nextProfile.avatar
+         name: profile.fullName,
+          phone: profile.phone,
+          gender: profile.gender,
+          birthDate: profile.birthDate,
+          image: avatarPreview || profile.avatar
         })
       });
+      
+      if (!response.ok) {
+        const payload = await response.json();
+        throw new Error(payload.error || "Gagal menyimpan profil.");
+      }
+      setSessionName(profile.fullName);
+      triggerToast("Berhasil! 🎉", "Profil Anda berhasil disimpan ke database.", "success");
     } catch (e) {
       console.error("Gagal menyimpan profil ke database:", e);
+       triggerToast("Gagal ❌", e instanceof Error ? e.message : "Gagal menyimpan profil.", "error");
     }
   }
-
 
   function handleAvatarUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -680,9 +693,13 @@ export default function CustomerProfileDashboard() {
       return;
     }
 
-    const objectUrl = URL.createObjectURL(file);
-    setAvatarPreview(objectUrl);
-    persistProfile({ ...profile, avatar: objectUrl });
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64 = e.target?.result as string;
+      setAvatarPreview(base64);
+      setProfile((prev) => ({ ...prev, avatar: base64 }));
+    };
+    reader.readAsDataURL(file);
   }
 
   async function handleAddAddress() {
@@ -1090,7 +1107,7 @@ export default function CustomerProfileDashboard() {
                           <input
                             value={profile.username}
                             onChange={(event) =>
-                              persistProfile({ ...profile, username: event.target.value })
+                              setProfile({ ...profile, username: event.target.value })
                             }
                             className="w-full rounded-2xl border border-cyan-400/15 bg-zinc-950 px-4 py-3 text-zinc-50 outline-none placeholder:text-zinc-500"
                             placeholder="username"
@@ -1101,7 +1118,7 @@ export default function CustomerProfileDashboard() {
                           <input
                             value={profile.fullName}
                             onChange={(event) =>
-                              persistProfile({ ...profile, fullName: event.target.value })
+                              setProfile({ ...profile, fullName: event.target.value })
                             }
                             className="w-full rounded-2xl border border-cyan-400/15 bg-zinc-950 px-4 py-3 text-zinc-50 outline-none placeholder:text-zinc-500"
                             placeholder="Nama lengkap"
@@ -1127,7 +1144,7 @@ export default function CustomerProfileDashboard() {
                         <input
                           value={profile.phone}
                           onChange={(event) =>
-                            persistProfile({ ...profile, phone: event.target.value })
+                            setProfile({ ...profile, phone: event.target.value })
                           }
                           className="w-full rounded-2xl border border-cyan-400/15 bg-zinc-950 px-4 py-3 text-zinc-50 outline-none placeholder:text-zinc-500"
                           placeholder="08xxxxxxxxxx"
@@ -1139,7 +1156,7 @@ export default function CustomerProfileDashboard() {
                         <select
                           value={profile.gender}
                           onChange={(event) =>
-                            persistProfile({ ...profile, gender: event.target.value })
+                            setProfile({ ...profile, gender: event.target.value })
                           }
                           className="w-full rounded-2xl border border-cyan-400/15 bg-zinc-950 px-4 py-3 text-zinc-50 outline-none"
                         >
@@ -1155,7 +1172,7 @@ export default function CustomerProfileDashboard() {
                           type="date"
                           value={profile.birthDate}
                           onChange={(event) =>
-                            persistProfile({ ...profile, birthDate: event.target.value })
+                            setProfile({ ...profile, birthDate: event.target.value })
                           }
                           className="w-full rounded-2xl border border-cyan-400/15 bg-zinc-950 px-4 py-3 text-zinc-50 outline-none"
                         />
@@ -1168,6 +1185,17 @@ export default function CustomerProfileDashboard() {
                         </div>
                         <p className="mt-2">Email tersensor: {maskEmail(profile.email)}</p>
                         <p className="mt-1">Tanggal lahir: {safeParseDate(profile.birthDate)}</p>
+                      </div>
+
+                      <div className="md:col-span-2 mt-2">
+                        <button
+                          type="button"
+                          onClick={handleSaveProfile}
+                          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-cyan-500 px-5 py-3.5 font-semibold text-zinc-950 transition hover:bg-cyan-400 hover:scale-[1.01]"
+                        >
+                          <Shield className="h-4 w-4" />
+                          Simpan Perubahan Profil
+                        </button>
                       </div>
                     </div>
                   </div>
