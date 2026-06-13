@@ -14,7 +14,13 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
+    const timer = setTimeout(() => {
+      setIsMounted(true);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
     const session = getCurrentSession();
     const isPublicPath = ALLOWED_PATHS.includes(pathname);
     const isAdminPath = pathname.startsWith("/admin");

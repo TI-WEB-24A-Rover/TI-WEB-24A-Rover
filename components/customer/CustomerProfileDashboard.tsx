@@ -316,21 +316,23 @@ interface DbOrder {
 
 export default function CustomerProfileDashboard() {
   const router = useRouter();
+  const [sessionName, setSessionName] = useState<string | null>(
+    () => getCurrentSession()?.name ?? null,
+  );
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+
   const handleLogout = useCallback(() => {
     clearSession();
     setSessionName(null);
     setAvatarPreview(null);
     router.refresh();
-  }, [router]);
+  }, [router, setSessionName, setAvatarPreview]);
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [sessionName, setSessionName] = useState<string | null>(
-    () => getCurrentSession()?.name ?? null,
-  );
   const [activeMenu, setActiveMenu] = useState<SidebarKey>("profil");
   const [profile, setProfile] = useState<ProfileForm>(() =>
     createDefaultProfile(),
   );
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [passwordState, setPasswordState] = useState({ current: "", next: "", confirm: "" });
   const [bankState, setBankState] = useState({ bankName: "BCA", accountNumber: "1234567890", holderName: "Customer InfoTani" });
   const [addresses, setAddresses] = useState<AddressEntry[]>(() =>
@@ -359,7 +361,10 @@ export default function CustomerProfileDashboard() {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
+    const timer = setTimeout(() => {
+      setIsMounted(true);
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const [toast, setToast] = useState<{
