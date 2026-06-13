@@ -246,7 +246,7 @@ export default function WelcomeGate({
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}
         >
-          Wawasan Real-time &amp; Pertanian Lampung
+          Wawasan Real-time &amp; Pertanian Indonesia
         </motion.p>
 
         {/* Tap Prompt */}
