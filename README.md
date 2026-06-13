@@ -51,6 +51,22 @@ tampilan login admin create akunpetani ,jika petani membuat akun maka di akan me
 
 <img width="952" height="638" alt="image" src="https://github.com/user-attachments/assets/62bf5eab-3a46-430e-9608-a29ec11bae5d" />
 
+database info tani
+
+
+<img width="1599" height="899" alt="image" src="https://github.com/user-attachments/assets/bcd8e492-db84-49b6-ad87-76d0e9a4693e" />
+
+menambahkan splassh screen
+
+<img width="1599" height="899" alt="image" src="https://github.com/user-attachments/assets/b4e30806-476b-4813-9893-e0b3514d9713" />
+
+meng update tampilan login user dan & create akun
+
+<img width="1599" height="895" alt="image" src="https://github.com/user-attachments/assets/dd6d6828-747d-46a9-8be6-069b899f070d" />
+
+
+
+
 
 
 
