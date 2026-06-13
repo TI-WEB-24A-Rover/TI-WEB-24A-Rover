@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import SplashScreen from "@/components/customer/SplashScreen";
+import WelcomeGate from "@/components/customer/WelcomeGate";
 import { getCurrentSession } from "@/lib/customer-store";
 
-export default function RootPage() {
+export default function LoginPage() {
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
 
@@ -17,13 +17,11 @@ export default function RootPage() {
     }
   }, [router]);
 
-  if (!isMounted) {
-    return (
-      <div className="min-h-screen bg-[#142d1d] flex items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#a3e635] border-t-transparent" />
-      </div>
-    );
-  }
+  if (!isMounted) return null;
 
-  return <SplashScreen />;
+  return (
+    <main className="min-h-screen flex items-center justify-center bg-[#f5f4f0] py-6">
+      <WelcomeGate behavior="page" initialTab="login" />
+    </main>
+  );
 }

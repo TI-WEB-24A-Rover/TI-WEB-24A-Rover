@@ -16,7 +16,7 @@ export default function BuyNowButton({ productId }: BuyNowButtonProps) {
     const checkoutUrl = `/checkout?productId=${encodeURIComponent(productId)}`;
 
     if (!session) {
-      router.push(`/auth/login?next=${encodeURIComponent(checkoutUrl)}`);
+      router.push(`/login?next=${encodeURIComponent(checkoutUrl)}`);
       return;
     }
 

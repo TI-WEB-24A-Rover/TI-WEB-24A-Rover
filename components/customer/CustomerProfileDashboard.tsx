@@ -919,13 +919,13 @@ export default function CustomerProfileDashboard() {
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link
-              href="/auth/login?next=/profile"
+              href="/login?next=/profile"
               className="rounded-xl border border-cyan-400/25 bg-cyan-500/15 px-5 py-3 font-semibold text-cyan-100 transition hover:bg-cyan-500/25"
             >
               Login Customer
             </Link>
             <Link
-              href="/auth/signup?next=/profile"
+              href="/signup?next=/profile"
               className="rounded-xl border border-zinc-700 bg-zinc-900/70 px-5 py-3 font-semibold text-zinc-100 transition hover:border-cyan-400/25"
             >
               Sign-up Customer
