@@ -17,4 +17,8 @@ export default function MainLayout({
       <FooterWrapper />
     </div>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 8152b7a80f4ae37f70710a904bdaf239ecd03445
