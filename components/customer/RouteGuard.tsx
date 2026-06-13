@@ -17,9 +17,10 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
     setIsMounted(true);
     const session = getCurrentSession();
     const isPublicPath = ALLOWED_PATHS.includes(pathname);
+    const isAdminPath = pathname.startsWith("/admin");
 
-    if (session || isPublicPath) {
-      // User is authenticated OR they are accessing a allowed public entry page (Splash/Login)
+    if (session || isPublicPath || isAdminPath) {
+      // User is authenticated OR they are accessing an allowed public entry page (Splash/Login) OR it's an admin path
       setIsAuthorized(true);
     } else {
       // User is not authenticated and trying to access a protected page
