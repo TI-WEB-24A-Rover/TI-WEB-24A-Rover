@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { getCurrentSession } from "@/lib/customer-store";
@@ -62,22 +62,23 @@ const socialLinks = [
   },
 ];
 
+const emptySubscribe = () => () => {};
+const getSnapshot = () => true;
+const getServerSnapshot = () => false;
+
 export default function FooterWrapper() {
   const pathname = usePathname();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-    const session = getCurrentSession();
-    if (session) {
-      setIsLoggedIn(true);
-    }
-  }, []);
+  const isMounted = useSyncExternalStore(
+    emptySubscribe,
+    getSnapshot,
+    getServerSnapshot
+  );
 
   if (!isMounted) {
     return null;
   }
+
+  const isLoggedIn = !!getCurrentSession();
 
   // Hide footer completely on homepage if user is not logged in (splash / login stage)
   if (pathname === "/" && !isLoggedIn) {

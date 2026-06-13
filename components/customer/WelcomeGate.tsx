@@ -190,7 +190,8 @@ export default function WelcomeGate({
       {/* -------------------------------------------------------------
           GREEN CURTAIN OVERLAY: SPLASH SCREEN (Dribbble Video Design)
           ------------------------------------------------------------- */}
-      <motion.div
+      {behavior !== "page" && (
+        <motion.div
         className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#142d1d] cursor-pointer pointer-events-auto"
         onClick={() => {
           setShowSplash(false);
@@ -259,6 +260,7 @@ export default function WelcomeGate({
           <ArrowRight className="w-3.5 h-3.5 animate-pulse text-[#a3e635]" />
         </motion.div>
       </motion.div>
+      )}
 
       {/* -------------------------------------------------------------
           STAGE 2: MINIMALIST EDITORIAL SPLIT SCREEN (Revealed Under Curtain)
@@ -446,7 +448,7 @@ export default function WelcomeGate({
             {/* Subtle Floating Wheat Indicator overlay */}
             <div className="absolute bottom-8 right-8 bg-white/70 backdrop-blur-md text-[9px] tracking-widest uppercase font-semibold text-[#1c1b18] px-4 py-2.5 rounded-full border border-white/40 flex items-center gap-1.5 shadow-sm">
               <Sprout className="w-3.5 h-3.5 text-emerald-700 animate-pulse" />
-              <span>InfoTani Lampung</span>
+              <span>InfoTani Di Seluruh Indonesia</span>
             </div>
           </motion.div>
         </div>
