@@ -58,7 +58,8 @@ database info tani
 
 menambahkan splassh screen
 
-<img width="1599" height="899" alt="image" src="https://github.com/user-attachments/assets/b4e30806-476b-4813-9893-e0b3514d9713" />
+<img width="1599" height="893" alt="image" src="https://github.com/user-attachments/assets/16cadd94-c42e-4986-aa07-89391bae65a1" />
+
 
 meng update tampilan login user dan & create akun
 
