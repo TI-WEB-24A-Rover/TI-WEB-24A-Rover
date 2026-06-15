@@ -2,7 +2,7 @@
 
 import { useState, useEffect, FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { ArrowRight, Loader2, Sprout } from "lucide-react";
 import {
   saveCustomer,
@@ -22,10 +22,9 @@ export default function WelcomeGate({
   initialTab = "login",
   onClose,
 }: WelcomeGateProps) {
-  const router = useRouter();
 
   // Welcome overlay visible state
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(behavior !== "overlay");
   // Splash Screen mode active
   const [showSplash, setShowSplash] = useState(
     behavior === "overlay" || behavior === "splash-only"
@@ -48,21 +47,25 @@ export default function WelcomeGate({
     // Check if session already exists
     const hasSession = typeof window !== "undefined" && window.localStorage.getItem("infotani.customer.session");
     
-    if (behavior === "overlay") {
-      if (hasSession) {
-        setIsVisible(false);
-      } else {
+    const timer = setTimeout(() => {
+      if (behavior === "overlay") {
+        if (hasSession) {
+          setIsVisible(false);
+        } else {
+          setIsVisible(true);
+          setShowSplash(true);
+        }
+      } else if (behavior === "splash-only") {
         setIsVisible(true);
         setShowSplash(true);
+      } else {
+        // Direct page mode
+        setIsVisible(true);
+        setShowSplash(false);
       }
-    } else if (behavior === "splash-only") {
-      setIsVisible(true);
-      setShowSplash(true);
-    } else {
-      // Direct page mode
-      setIsVisible(true);
-      setShowSplash(false);
-    }
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [behavior]);
 
   // Submit Login/Signup Form
@@ -439,10 +442,13 @@ export default function WelcomeGate({
             transition={{ delay: 0.3, duration: 0.75, ease: "easeOut" }}
             style={{ pointerEvents: showSplash ? "none" : "auto" }}
           >
-            <img
+            <Image
               src="/login-visual.png"
               alt="Minimalist pottery vase and wheat stalks"
-              className="w-full h-full object-cover opacity-90 transition-transform duration-1000 hover:scale-[1.03]"
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
+              priority
+              className="object-cover opacity-90 transition-transform duration-1000 hover:scale-[1.03]"
             />
             
             {/* Subtle Floating Wheat Indicator overlay */}
